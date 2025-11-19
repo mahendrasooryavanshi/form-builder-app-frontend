@@ -1,8 +1,8 @@
 const ADMIN_BASE = process.env.ADMIN_API_URL!;
 const ADMIN_USER = process.env.ADMIN_USERNAME!;
 const ADMIN_PASS = process.env.ADMIN_PASSWORD!;
-import { adminApi } from '../../../lib/apiClient';
-
+import { adminApi } from "../../../lib/apiClient";
+import Link from "next/link";
 interface FormField {
   _id: string;
   label: string;
@@ -16,48 +16,62 @@ interface Form {
   fields?: FormField[];
 }
 
-//Server Component
-export default async function FormDetail({ params }: { params: Promise<{ formId: string }> }) {
+export default async function FormDetail({
+  params,
+}: {
+  params: Promise<{ formId: string }>;
+}) {
   const { formId } = await params;
-  console.log(formId, ">>>>>>>>>> form id")
-  
-  // Validate formId
-  if (!formId) {
-    return <div className="text-red-500">Invalid Form ID</div>;
-  }
-  // Fetch form details
+
+  if (!formId) return <p className="text-red-500 p-4">Invalid Form ID</p>;
+
   let form: Form | null = null;
+
   try {
     const response = await adminApi.get(`/forms/${formId}`);
     form = response.data?.data ?? response.data;
   } catch (err: any) {
-    console.log('Error fetching form:', err.message || err);
     return (
-      <div className="text-red-500">
-        Failed to fetch form. {err.response?.data?.message || ''}
-      </div>
+      <p className="text-red-500 p-4">
+        Failed to load form. {err?.response?.data?.message || ""}
+      </p>
     );
   }
 
-  // Handle not found
-  if (!form) {
-    return <div className="text-yellow-500">Form not found</div>;
-  }
+  if (!form) return <p className="text-yellow-500 p-4">Form not found</p>;
 
   return (
     <div className="text-white p-4">
-      <h1 className="text-3xl font-bold mb-4">{form.title}</h1>
-      <p className="text-gray-400">{form.description}</p>
+      {/* FORM TITLE + ACTIONS */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">{form.title}</h1>
+          <p className="text-gray-400">{form.description}</p>
+        </div>
 
-      <a
-        href={`/admin/forms/${form._id}/fields/create`}
-        className="inline-block mt-4 bg-indigo-600 px-4 py-2 rounded hover:bg-indigo-700"
-      >
-        Add Field
-      </a>
+        <div className="flex gap-3">
+          {/* Edit Form */}
+          <Link
+            href={`/admin/forms/${formId}/edit`}
+            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white font-medium"
+          >
+            ✏ Edit Form
+          </Link>
 
-      <h2 className="text-xl font-semibold mt-8 mb-4">Fields</h2>
-      {form.fields && form.fields.length > 0 ? (
+          {/* Add Field */}
+          <Link
+            href={`/admin/forms/${formId}/fields/create`}
+            className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-white font-medium"
+          >
+            ➕ Add Field
+          </Link>
+        </div>
+      </div>
+
+      {/* FIELDS LIST */}
+      <h2 className="text-xl font-semibold mb-4">Fields</h2>
+
+      {form.fields?.length ? (
         <div className="space-y-4">
           {form.fields.map((field) => (
             <div
@@ -68,18 +82,21 @@ export default async function FormDetail({ params }: { params: Promise<{ formId:
               <p className="text-gray-400 text-sm">{field.type}</p>
 
               <div className="mt-2 space-x-4">
-                <a
-                  href={`/admin/forms/${form._id}/fields/${field._id}`}
+                {/* Edit Field */}
+                <Link
+                  href={`/admin/forms/${formId}/fields/${field._id}/edit`}
                   className="text-indigo-400 hover:underline"
                 >
-                  Edit
-                </a>
-                <a
-                  href={`/admin/forms/${form._id}/fields/${field._id}/delete`}
+                  Edit Field
+                </Link>
+
+                {/* Delete Field */}
+                <Link
+                  href={`/admin/forms/${formId}/fields/${field._id}/delete`}
                   className="text-red-400 hover:underline"
                 >
-                  Delete
-                </a>
+                  Delete Field
+                </Link>
               </div>
             </div>
           ))}

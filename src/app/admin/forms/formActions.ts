@@ -1,15 +1,48 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { adminApi } from "../../lib/apiClient";
 
-export async function createFormAction(formData: FormData): Promise<void> {
-    const name = formData.get("name")?.toString();
+export async function createFormAction(formData: FormData) {
+    try {
+        const body = {
+            title: formData.get("title"),
+            description: formData.get("description"),
+            fields: JSON.parse(formData.get("fields") as string),
+        };
 
-    await fetch("https://api.yourdomain.com/forms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-    });
+        const response = await adminApi.post("/forms", body);
 
-    redirect("/admin/forms"); // <-- Redirect after success
+        return {
+            success: true,
+            message: "Form created successfully!",
+            data: response,
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.message || "Failed to create form",
+        };
+    }
+}
+
+
+export async function updateFormAction(id: string, formData: FormData) {
+    try {
+        const body = {
+            title: formData.get("title"),
+            description: formData.get("description"),
+            fields: JSON.parse(formData.get("fields") as string),
+        };
+        const updated = await adminApi.put(`/forms/${id}`, body);
+        return {
+            success: true,
+            message: "Form updated successfully!",
+            data: updated,
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.message || "Failed to update form",
+        };
+    }
 }

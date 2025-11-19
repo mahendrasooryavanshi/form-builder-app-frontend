@@ -1,4 +1,4 @@
-const ADMIN_BASE = process.env.ADMIN_API_URL!;
+import "server-only";
 const ADMIN_USER = process.env.ADMIN_USERNAME!;
 const ADMIN_PASS = process.env.ADMIN_PASSWORD!;
 
@@ -15,7 +15,6 @@ async function request(endpoint: string, options: RequestInit = {}) {
         },
         cache: "no-store",
     });
-    // console.log(res, ">>>>>>> response")
     if (!res.ok) {
         const errorText = await res.text();
         throw new Error(errorText || "Admin API Error");

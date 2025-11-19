@@ -46,18 +46,17 @@ export default function CreateFormPage() {
     ]);
   };
 
-const updateField = <K extends keyof Field>(
-  index: number,
-  key: K,
-  value: Field[K]
-) => {
-  setFields((prev) => {
-    const updated = [...prev];
-    updated[index][key] = value;
-    return updated;
-  });
-};
-
+  const updateField = <K extends keyof Field>(
+    index: number,
+    key: K,
+    value: Field[K]
+  ) => {
+    setFields((prev) => {
+      const updated = [...prev];
+      updated[index][key] = value;
+      return updated;
+    });
+  };
 
   /** Remove a field */
   const removeField = (index: number) => {
@@ -73,26 +72,36 @@ const updateField = <K extends keyof Field>(
       return;
     }
 
+    // Validate fields
+    for (const field of fields) {
+      if (!field.label.trim()) return alert("Each field needs a label.");
+      if (!field.name.trim()) return alert("Each field needs a unique name.");
+    }
+
     setIsSubmitting(true);
+
     try {
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("fields", JSON.stringify(fields));
 
-      await createFormAction(formData);
+      const res = await createFormAction(formData);
 
-      alert("Form created successfully!");
+      if (!res.success) {
+        alert("Failed: " + res.message);
+        return;
+      }
+
+      alert("🎉 Form created successfully!");
 
       // Reset form
       setTitle("");
       setDescription("");
       setFields([]);
-    } catch (error: unknown) {
-      let message = "Failed to create form. Please try again.";
-      if (error instanceof Error) message = error.message;
+    } catch (error) {
       console.error("Form creation error:", error);
-      alert(message);
+      alert("Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
@@ -205,7 +214,11 @@ const updateField = <K extends keyof Field>(
                   value={JSON.stringify(field.validation)}
                   onChange={(e) => {
                     try {
-                      updateField(index, "validation", JSON.parse(e.target.value));
+                      updateField(
+                        index,
+                        "validation",
+                        JSON.parse(e.target.value)
+                      );
                     } catch {}
                   }}
                   className="w-full p-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400"
